@@ -236,7 +236,8 @@ bot.on(
       @${new_chat_member.user.username || user.id}
 
       Hei\! Ethän ole botti? Mitä on ${challenge.challenge}? \(${CHALLENGE_TIMEOUT_SECONDS} sekuntia aikaa\)
-      Hi\! You're not a bot, right? What is ${challenge.challenge}? \(${CHALLENGE_TIMEOUT_SECONDS} seconds left\)
+      Hi\! You're not a bot, right? What is ${challenge.challenge}? \(You have ${CHALLENGE_TIMEOUT_SECONDS} seconds\)
+      Hej\! Du är väl ingen bot? Vad är ${challenge.challenge}? \(${CHALLENGE_TIMEOUT_SECONDS} sekunder på dig\)
 
       🦆
     `;
