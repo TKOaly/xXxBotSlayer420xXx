@@ -1,0 +1,18 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  builds:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger deployment
+        uses: aurelien-baudet/workflow-dispatch@v2
+        with:
+          token: ${{ secrets.DEPLOYMENT_PAT }}
+          workflow: Bump Service
+          inputs: '{"service": "botslayer", "tag": "sha-${{ steps.sha.outputs.value }}"}'
+          repo: TKOaly/tko-aly-k8s-configs
+          ref: main

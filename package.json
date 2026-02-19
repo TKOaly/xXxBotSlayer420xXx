@@ -1,0 +1,17 @@
+{
+  "name": "xxxbotslayer420xxx",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node-telegram-bot-api": "^0.64.13",
+    "prettier": "^3.8.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dedent": "^1.7.1",
+    "node-telegram-bot-api": "^0.67.0"
+  }
+}
