@@ -1,4 +1,4 @@
-name: Build and deploy the service
+name: CI
 
 on: [push]
 
@@ -28,7 +28,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.PRIVATE_REGISTRY_URL }}/botslayer
+          images: ${{ secrets.PRIVATE_REGISTRY_URL }}/bot-slayer
           tags: |
             type=schedule
             type=ref,event=branch
