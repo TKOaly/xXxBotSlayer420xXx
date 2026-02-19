@@ -1,7 +1,16 @@
 import { Database } from "bun:sqlite";
 import type { Chat } from "node-telegram-bot-api";
+import { mkdir } from "node:fs/promises";
 
-const db = new Database("bot.db", { create: true, strict: true });
+// Check whether `data/` directory exists, if not create it
+// In production this will be a mounted volume
+try {
+  await mkdir("data", { recursive: true });
+} catch (e) {
+  console.warn("Failed to create data directory:", e);
+}
+
+const db = new Database("data/bot.db", { create: true, strict: true });
 db.run("PRAGMA journal_mode = WAL;");
 
 class WhitelistDB {
