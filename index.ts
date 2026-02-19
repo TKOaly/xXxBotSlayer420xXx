@@ -367,6 +367,55 @@ bot.on("message", async (message) => {
     );
   }
 
+  if (message.chat.type === "private") {
+    if (message.text?.includes("/vahvista")) {
+      console.info(
+        `[✅ whitelist via DM] ${message.from?.id} (${message.from?.username}) whitelisted via DM`,
+      );
+      whitelist.whitelistUser(message.from!.id);
+      try {
+        await bot.sendMessage(
+          message.chat.id,
+          dedent`Olet vahvistettu, kiitos\!
+          You are verified, thank you\!
+          Du är verifierad, tack\!
+          
+          🦆💛🖤`,
+          { parse_mode: "MarkdownV2" },
+        );
+      } catch (e) {
+        console.error(
+          `Failed to send confirmation message to ${message.from?.id} in DM:`,
+          e,
+        );
+      }
+
+      return;
+    }
+
+    if (message.text?.includes("/unohda")) {
+      whitelist.forgetUser(message.from!.id);
+      try {
+        await bot.sendMessage(
+          message.chat.id,
+          dedent`Poistin vahvistuksesi tietokannasta\.
+          I have removed your verification from the database\.
+          Jag har tagit bort din verifiering från databasen\.
+          
+          🦆`,
+          { parse_mode: "MarkdownV2" },
+        );
+      } catch (e) {
+        console.error(
+          `Failed to send confirmation message to ${message.from?.id} in DM:`,
+          e,
+        );
+      }
+
+      return;
+    }
+  }
+
   if (message.chat.type !== "group" && message.chat.type !== "supergroup") {
     return;
   }

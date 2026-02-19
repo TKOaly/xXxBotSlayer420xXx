@@ -59,6 +59,10 @@ class WhitelistDB {
     const result = query.get({ userId });
     return !!result;
   }
+
+  forgetUser(userId: number) {
+    this.db.run("DELETE FROM whitelist WHERE user_id = ?;", [userId]);
+  }
 }
 
 /**
