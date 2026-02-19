@@ -90,13 +90,12 @@ class ChatDB {
       return;
     }
 
-    console.info(`[➕ chat] ${chat.title} [${chat.id}] `);
-
     try {
       this.db.run("INSERT INTO chats (chat_id, name) VALUES (?, ?);", [
         chat.id,
         chat.title || null,
       ]);
+      console.info(`[➕ chat] ${chat.title} [${chat.id}] `);
       this.localCache.add(chat.id);
     } catch (e) {
       if (
