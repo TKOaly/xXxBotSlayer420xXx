@@ -1,13 +1,27 @@
 import { Database } from "bun:sqlite";
 import type { Chat } from "node-telegram-bot-api";
-import { mkdir } from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 
-// Check whether `data/` directory exists, if not create it
-// In production this will be a mounted volume
+// Ensure data directory exists
+const dataDir = "data";
 try {
-  await mkdir("data", { recursive: true });
+  const dataStat = await stat(dataDir);
+  console.info(`[db] Data directory "${dataDir}" exists`);
+  console.info(
+    `[db] Data directory permissions: ${dataStat.mode.toString(8)} / uid ${dataStat.uid} / gid ${dataStat.gid}`,
+  );
+  if (!dataStat.isDirectory()) {
+    throw new Error(`[db] "${dataDir}" exists but is not a directory`);
+  }
 } catch (e) {
-  console.warn("Failed to create data directory:", e);
+  if (e instanceof Error && (e as any).code === "ENOENT") {
+    console.info(
+      `[db] Data directory "${dataDir}" does not exist, creating...`,
+    );
+    await mkdir(dataDir);
+  } else {
+    throw e;
+  }
 }
 
 const db = new Database("data/bot.db", { create: true, strict: true });
