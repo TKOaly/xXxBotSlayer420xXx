@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import type { Chat } from "node-telegram-bot-api";
 import { mkdir, stat } from "node:fs/promises";
+import { formatChatDetails } from "./utils";
 
 // Ensure data directory exists
 const dataDir = "data";
@@ -106,6 +107,21 @@ class ChatDB {
         return;
       }
       throw e; // Rethrow other errors
+    }
+  }
+
+  deleteChat(chat: Chat | number) {
+    const chatId = typeof chat === "number" ? chat : chat.id;
+    const chatDetails = formatChatDetails(chat);
+
+    this.localCache.delete(chatId);
+    try {
+      this.db.run("DELETE FROM chats WHERE chat_id = ?;", [chatId]);
+      console.info(`[❌ chat] ${chatDetails} removed from database`);
+    } catch (e) {
+      console.warn(
+        `[❌ chat] Failed to remove ${chatDetails} from database: ${e instanceof Error ? e.message : e}`,
+      );
     }
   }
 

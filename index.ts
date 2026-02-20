@@ -196,9 +196,14 @@ const banUserFromAllChats = async (user: TelegramBot.User) => {
       });
       console.info(`[🏌️ banned] ${userDetails} in ${chatDetails}`);
     } catch (e) {
-      // Ignore ETELEGRAM: 400 Bad Request: USER_NOT_PARTICIPANT
-      // We can't verify whether the user is part of the chat beforehand.
+      // On ETELEGRAM: 400 Bad Request: USER_NOT_PARTICIPANT,
+      // remove from chats.
       if (e instanceof Error && e.message.includes("USER_NOT_PARTICIPANT")) {
+        console.warn(
+          `[😭] Bot is no longer present in ${chatDetails}, removing from admin list`,
+        );
+        adminChats.delete(id);
+        chats.deleteChat(id);
         continue;
       }
 
