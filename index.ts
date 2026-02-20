@@ -2,7 +2,13 @@ import TelegramBot from "node-telegram-bot-api";
 import dedent from "dedent";
 
 import { whitelist, chats } from "./src/db";
-import { createChallenge, ensureDefaultRights } from "./src/utils";
+import {
+  createChallenge,
+  ensureDefaultRights,
+  formatChatDetails,
+  formatUserDetails,
+  formatUserMention,
+} from "./src/utils";
 import {
   ADMIN_STATUS_CHECK_COOLDOWN,
   CHALLENGE_TIMEOUT_SECONDS,
@@ -13,19 +19,19 @@ import {
 console.info(`[🧑‍🚀] Starting xXxBotSlayer420xXx`);
 console.info(`
                                                            @@@@@@@@@@@@@@@@@@@@@@@@                                                           
-                                                   @@@@@@@                          @@@@@@@                                                   
+                                                   @@@@@@@@                        @@@@@@@@                                                   
                                               @@@@@                    @@                  @@@@@                                              
-                                          @@@@                         @@  @                    @@@@                                          
-                                      @@@                 @@         @@@@@@       @@@@ @@            @@@                                      
+                                          @@@@                      @  @@  @                    @@@@                                          
+                                      @@@@                @@         @@@@@@       @@@@ @@           @@@@                                      
                                    @@@          @   @@    @@         @@@@@@       @       @  @@         @@@                                   
-                                @@@            @     @       @      @  @@  @@      @@     @      @         @@@                                
+                                @@@            @     @       @      @  @@  @       @@     @      @         @@@                                
                              @@@         @     @@@    @     @@         @@         @@     @      @     @       @@@                             
                            @@             @@      @   @@                                 @     @      @          @@                           
-                         @@         @@@@   @@    @          @@@@@@@         @@@@@@@@           @     @     @       @@                         
-                       @@      @     @     @@@       @@@@                             @@@@      @  @@    @@  @       @@                       
-                     @@      @@       @          @@@                                        @@          @     @        @@                     
-                   @@         @@ @     @     @@@                                                @@     @      @          @@                   
-                 @@       @     @   @     @@                                                       @@      @@      @@@     @@                 
+                         @@         @@@@   @@    @          @@@@@@@@@@@@@@@@@@@@@@@@           @     @     @       @@                         
+                       @@      @     @     @@@       @@@@@@@                        @@@@@@      @  @@    @@  @       @@                       
+                     @@      @@       @          @@@@                                     @@@@          @     @        @@                     
+                   @@         @@ @     @     @@@@                                             @@@@     @      @          @@                   
+                 @@       @     @   @     @@@                                                      @@      @@      @@@     @@                 
                 @@         @@     @    @@                                                             @@         @          @@                
               @@             @@      @@                                                                 @@     @   @          @@              
              @@      @             @@                                                                      @    @     @@@      @@             
@@ -47,7 +53,7 @@ console.info(`
  @@    @@      @  @                            @@@              @@@       @@@@@@@@       @@@             @@@                @              @@ 
  @         @@@@  @@                            @@@             @@@@        @@@@@@@        @@@           @@@                  @              @ 
 @@               @                            @@@@             @@@@         @@@@@@@         @@@       @@@                    @              @@
-@@    @          @                                                           @@@@               @@@@@                        @   @@@@@      @@
+@@    @          @                                                           @@@@              @@@@@@@                       @   @@@@@      @@
 @@    @   @  @   @                                                           @@@@                                            @   @      @   @@
 @@     @@@@@@@   @                                                           @@@@                                            @@   @         @@
 @@               @                                                          @@@@                        @@@                  @@    @   @    @@
@@ -75,20 +81,20 @@ console.info(`
             @@               @   @@                                              @             @             @       @@    @    @@            
              @@            @@      @@                                            @@        @@@@           @@   @@@@@@   @      @@             
               @@      @@ @@          @@                                           @@@@@@@@@@            @@    @     @         @@              
-                @@      @        @     @@                                                             @@       @@   @       @@                
-                 @@       @    @@         @@                                                       @@      @        @      @@                 
-                   @@         @@   @   @     @@@                                               @@@      @   @@           @@                   
-                     @@             @    @@      @@@                                       @@@          @     @        @@                     
-                       @@        @  @     @  @@      @@@@                             @@@@        @@ @@ @            @@                       
-                         @@               @  @   @@@        @@@@@@@         @@@@@@@@        @@ @     @  @          @@                         
+                @@      @        @     @@@                                                           @@@       @@   @       @@                
+                 @@       @    @@         @@@                                                     @@@      @        @      @@                 
+                   @@         @@   @   @     @@@@                                             @@@@      @   @@           @@                   
+                     @@             @    @@      @@@@                                     @@@@          @     @        @@                     
+                       @@        @  @     @  @@      @@@@@@                         @@@@@@        @@ @@ @            @@                       
+                         @@               @  @   @@@        @@@@@@@@@@@@@@@@@@@@@@@@        @@ @     @  @          @@                         
                            @@           @   @      @                                           @       @@        @@                           
                              @@@         @ @     @@      @@      @   @      @   @@  @@          @             @@@                             
                                 @@@              @@    @@  @     @   @@    @@   @     @          @         @@@                                
                                    @@@          @@    @    @    @@   @  @  @    @     @       @         @@@                                   
-                                      @@@                  @@   @@   @   @@@    @     @              @@@                                      
+                                      @@@@                 @@   @@   @   @@@    @     @             @@@@                                      
                                           @@@@                  @    @     @    @               @@@@                                          
                                               @@@@@                                        @@@@@                                              
-                                                   @@@@@@@                          @@@@@@@                                                   
+                                                   @@@@@@@@                        @@@@@@@@                                                   
                                                            @@@@@@@@@@@@@@@@@@@@@@@@                                                           
 
 `);
@@ -121,18 +127,18 @@ if (allChats.length === 0) {
   console.warn("[⚠️] No chats in database");
 }
 for (const { id, name } of allChats) {
+  const chatDetails = formatChatDetails(id, name);
+
   try {
     const admins = await bot.getChatAdministrators(id);
 
     if (admins.some((admin) => admin.user.id === botUser.id)) {
-      console.info(
-        `[👮] Found admin chat on startup: ${name ?? "<no name>"} (${id})`,
-      );
+      console.info(`[👮] Found admin chat on startup: ${chatDetails}`);
       adminChats.add(id);
     }
   } catch (e) {
     console.error(
-      `Failed to check admin status of ${name ?? "<no name>"} (${id}) on startup:`,
+      `Failed to check admin status of ${chatDetails} on startup:`,
       e,
     );
   }
@@ -153,10 +159,11 @@ const checkAdminStatus = async (chat: TelegramBot.Chat) => {
   }
 
   const admins = await bot.getChatAdministrators(chat.id);
+  const chatDetails = formatChatDetails(chat);
 
   // If the bot is an admin, add the chat to the cache and return true
   if (admins.some((admin) => admin.user.id === botUser.id)) {
-    console.info(`[👮] Added ${chat.title || chat.id} to admin chats`);
+    console.info(`[👮] Added ${chatDetails} to admin chats`);
     adminChats.add(chat.id);
     return true;
   }
@@ -177,19 +184,17 @@ const awaitingResponse: Record<
 > = {};
 
 const banUserFromAllChats = async (user: TelegramBot.User) => {
-  const allChats = chats.getAllChats();
+  const userDetails = formatUserDetails(user);
 
   for (const id of adminChats) {
-    const name = allChats.find((c) => c.id === id)?.name || "<no name>";
+    const chatDetails = formatChatDetails(id);
 
     try {
       await bot.banChatMember(id, user.id, {
         revoke_messages: true,
         until_date: Math.floor(Date.now() / 1000) + 60,
       });
-      console.info(
-        `[🏌️ banned] ${user.username ?? user.id} in ${name} (${id})`,
-      );
+      console.info(`[🏌️ banned] ${userDetails} in ${chatDetails}`);
     } catch (e) {
       // Ignore ETELEGRAM: 400 Bad Request: USER_NOT_PARTICIPANT
       // We can't verify whether the user is part of the chat beforehand.
@@ -201,13 +206,13 @@ const banUserFromAllChats = async (user: TelegramBot.User) => {
       // we should remove the chat from the database for re-verification.
       if (e instanceof Error && e.message.includes("not enough rights")) {
         console.warn(
-          `[😭] Bot is no longer admin in ${name} (${id}), removing from admin list`,
+          `[😭] Bot is no longer admin in ${chatDetails}, removing from admin list`,
         );
         adminChats.delete(id);
         continue;
       }
 
-      console.error(`Failed to ban ${user.id} in chat ${name} (${id}):`, e);
+      console.error(`Failed to ban ${userDetails} in chat ${chatDetails}:`, e);
     }
   }
 };
@@ -227,8 +232,10 @@ const markMessageForCleanup = (
   }
   messagesToCleanUp[userId].push({ chatId, messageId, onlyIfBanned });
 };
-const cleanUpMessages = async (userId: number, banned: boolean) => {
-  const messages = messagesToCleanUp[userId];
+const cleanUpMessages = async (user: TelegramBot.User, banned: boolean) => {
+  const messages = messagesToCleanUp[user.id];
+  const userDetails = formatUserDetails(user);
+
   if (!messages || messages.length === 0) {
     return;
   }
@@ -242,33 +249,33 @@ const cleanUpMessages = async (userId: number, banned: boolean) => {
       await bot.deleteMessage(chatId, messageId);
     } catch (e) {
       console.error(
-        `Failed to delete message ${messageId} for user ${userId}:`,
+        `Failed to delete message ${messageId} for user ${userDetails}:`,
         e,
       );
     }
   }
-  delete messagesToCleanUp[userId];
+
+  delete messagesToCleanUp[user.id];
 };
 
-const createChallengeTimeout = (
-  user: TelegramBot.User,
-  chat: TelegramBot.Chat,
-) => {
+const createChallengeTimeout = (user: TelegramBot.User) => {
+  const userDetails = formatUserDetails(user);
+
   return setTimeout(async () => {
     if (!awaitingResponse[user.id]) {
       console.info(
-        `[🔕 cancelled] [user ${user.username ?? user.id}] Challenge already answered or not found`,
+        `[🔕 cancelled] [${userDetails}] Challenge already answered or not found`,
       );
       return;
     }
 
     console.info(
-      `[⏰ timeout] [user ${user.username ?? user.id}] Failed to answer challenge in time`,
+      `[⏰ timeout] [${userDetails}] Failed to answer challenge in time`,
     );
 
     delete awaitingResponse[user.id];
 
-    await cleanUpMessages(user.id, true);
+    await cleanUpMessages(user, true);
     await banUserFromAllChats(user);
   }, CHALLENGE_TIMEOUT_SECONDS * 1000);
 };
@@ -283,12 +290,13 @@ bot.on(
     }
 
     const user = new_chat_member.user;
+    const userDetails = formatUserDetails(user);
+    const fromDetails = formatUserDetails(from);
+    const chatDetails = formatChatDetails(chat);
 
     // Check whitelist for user
     if (whitelist.isWhitelisted(user.id)) {
-      console.info(
-        `[✅ whitelist] ${user.id} (${new_chat_member.user.username}) in ${chat.title || chat.id}`,
-      );
+      console.info(`[✅ whitelist] ${userDetails} in ${chatDetails}`);
       return;
     }
 
@@ -302,7 +310,7 @@ bot.on(
       if (whitelist.isWhitelisted(from.id)) {
         whitelist.whitelistUser(user.id);
         console.info(
-          `[✅ added by whitelisted user] ${user.id} (${new_chat_member.user.username}) added by whitelisted user ${from.id} in ${chat.title || chat.id}`,
+          `[✅ added by whitelisted user] ${userDetails} added by whitelisted user ${fromDetails} in ${chatDetails}`,
         );
         return;
       }
@@ -311,7 +319,7 @@ bot.on(
       if (chatAdmins.some((admin) => admin.user.id === from.id)) {
         whitelist.whitelistUser(user.id);
         console.info(
-          `[✅ added by admin] ${user.id} (${new_chat_member.user.username}) added by admin ${from.id} in ${chat.title || chat.id}`,
+          `[✅ added by admin] ${userDetails} added by admin ${fromDetails} in ${chatDetails}`,
         );
         return;
       }
@@ -319,27 +327,21 @@ bot.on(
 
     if (via_join_request) {
       whitelist.whitelistUser(user.id);
-      console.info(
-        `[✅ join request] ${user.id} (${new_chat_member.user.username}) in ${chat.title || chat.id}`,
-      );
+      console.info(`[✅ join request] ${userDetails} in ${chatDetails}`);
       return;
     }
 
     if (awaitingResponse[user.id]) {
-      console.info(
-        `[🔕 awaiting] ${user.id} (${new_chat_member.user.username}) in ${chat.title || chat.id}`,
-      );
+      console.info(`[🔕 awaiting] ${userDetails} in ${chatDetails}`);
       return;
     }
 
     const challenge = createChallenge();
     console.info(
-      `[❓ challenge] ${user.id} (${new_chat_member.user.username}) - ${challenge.challenge} in ${chat.title || chat.id}`,
+      `[❓ challenge] ${userDetails} - ${challenge.challenge.replace("\\", "")} in ${chatDetails}`,
     );
 
-    const mention = user.username
-      ? `@${user.username}`
-      : `[${[user.first_name, user.last_name].filter(Boolean).join(" ")}](tg://user?id=${user.id})`;
+    const mention = formatUserMention(user);
 
     const messageString = dedent`
       ${mention}
@@ -360,12 +362,12 @@ bot.on(
       awaitingResponse[user.id] = {
         challengeAnswer: challenge.answer,
         challengeTimestamp: Date.now(),
-        challengeTimeout: createChallengeTimeout(user, chat),
+        challengeTimeout: createChallengeTimeout(user),
       };
       markMessageForCleanup(user.id, chat.id, challengeMessage.message_id);
     } catch (e) {
       console.error(
-        `Failed to send challenge message to ${user.id} in ${chat.title || chat.id}:`,
+        `Failed to send challenge message to ${userDetails} in ${chatDetails}:`,
         e,
       );
       return;
@@ -380,17 +382,16 @@ bot.on(
  * avoid cluttering with non-relevant message.
  */
 bot.on("message", async (message) => {
+  const userDetails = formatUserDetails(message.from);
+  const chatDetails = formatChatDetails(message.chat);
+
   if (message.text === "/ping") {
-    console.info(
-      `[🏓 ping] ${message.from?.id} (${message.from?.username}) in ${message.chat.title ?? message.chat.id}`,
-    );
+    console.info(`[🏓 ping] ${userDetails} in ${chatDetails}`);
   }
 
   if (message.chat.type === "private") {
     if (message.text?.includes("/vahvista")) {
-      console.info(
-        `[✅ whitelist via DM] ${message.from?.id} (${message.from?.username}) whitelisted via DM`,
-      );
+      console.info(`[✅ whitelist via DM] ${userDetails} whitelisted via DM`);
       whitelist.whitelistUser(message.from!.id);
       try {
         await bot.sendMessage(
@@ -404,7 +405,7 @@ bot.on("message", async (message) => {
         );
       } catch (e) {
         console.error(
-          `Failed to send confirmation message to ${message.from?.id} in DM:`,
+          `Failed to send confirmation message to ${userDetails} in DM:`,
           e,
         );
       }
@@ -426,7 +427,7 @@ bot.on("message", async (message) => {
         );
       } catch (e) {
         console.error(
-          `Failed to send confirmation message to ${message.from?.id} in DM:`,
+          `Failed to send confirmation message to ${userDetails} in DM:`,
           e,
         );
       }
@@ -441,28 +442,26 @@ bot.on("message", async (message) => {
 
   chats.addChat(message.chat);
 
-  const userId = message.from?.id;
-  const chatId = message.chat.id;
+  const user = message.from;
+  const chat = message.chat;
 
-  if (!userId || !awaitingResponse[userId]) {
+  if (!user || !awaitingResponse[user.id]) {
     return;
   }
 
-  if (!(await checkAdminStatus(message.chat))) {
+  if (!(await checkAdminStatus(chat))) {
     return;
   }
 
-  const { challengeAnswer, challengeTimeout } = awaitingResponse[userId];
+  const { challengeAnswer, challengeTimeout } = awaitingResponse[user.id];
   if (message.text?.includes(challengeAnswer)) {
-    console.info(
-      `[✅ passed] ${userId} (${message.from?.username}) in ${message.chat.title ?? message.chat.id}`,
-    );
-    whitelist.whitelistUser(userId);
+    console.info(`[✅ passed] ${userDetails} in ${chatDetails}`);
+    whitelist.whitelistUser(user.id);
 
     clearTimeout(challengeTimeout);
-    delete awaitingResponse[userId];
+    delete awaitingResponse[user.id];
 
-    await bot.setMessageReaction(chatId, message.message_id, {
+    await bot.setMessageReaction(chat.id, message.message_id, {
       reaction: [
         {
           type: "emoji",
@@ -471,10 +470,10 @@ bot.on("message", async (message) => {
       ],
     });
 
-    markMessageForCleanup(userId, chatId, message.message_id);
+    markMessageForCleanup(user.id, chat.id, message.message_id);
 
     setTimeout(
-      () => cleanUpMessages(userId, false),
+      () => cleanUpMessages(user, false),
       CHALLENGE_DELETE_SECONDS * 1000,
     );
 
@@ -485,7 +484,7 @@ bot.on("message", async (message) => {
   // it's likely an attempt to answer the challenge,
   // so we can react with thumbs down to indicate failure.
   if (message.text && /^\s*[\d\W_]+\s*$/.test(message.text)) {
-    await bot.setMessageReaction(chatId, message.message_id, {
+    await bot.setMessageReaction(chat.id, message.message_id, {
       reaction: [
         {
           type: "emoji",
@@ -496,9 +495,9 @@ bot.on("message", async (message) => {
 
     // Remove all thumbsed-down messages on cleanup,
     // even if the user manages to pass the challenge.
-    markMessageForCleanup(userId, chatId, message.message_id);
+    markMessageForCleanup(user.id, chat.id, message.message_id);
   } else {
     // Remove all messages from the user if they are banned
-    markMessageForCleanup(userId, chatId, message.message_id, true);
+    markMessageForCleanup(user.id, chat.id, message.message_id, true);
   }
 });

@@ -1,5 +1,6 @@
-import type TelegramBot from "node-telegram-bot-api";
+import TelegramBot from "node-telegram-bot-api";
 import { WANTED_RIGHTS } from "./constants";
+import { chats } from "./db";
 
 export const ensureDefaultRights = async (bot: TelegramBot) => {
   const currentRights = await bot.getMyDefaultAdministratorRights({
@@ -42,3 +43,58 @@ export const createChallenge = () => {
     answer: (num1 + num2).toString(),
   };
 };
+
+export const formatUserDetails = (user: TelegramBot.User | undefined) => {
+  if (!user) {
+    return `<unknown user>`;
+  }
+
+  let userDetails;
+
+  if (user.username) {
+    userDetails = `@${user.username}`;
+  }
+
+  if (user.first_name || user.last_name) {
+    const namePart = [user.first_name, user.last_name]
+      .filter(Boolean)
+      .join(" ");
+
+    if (user.username) userDetails += " [";
+    if (user.username) userDetails += namePart;
+    if (user.username) userDetails += "]";
+  }
+
+  userDetails += ` (${user.id})`;
+
+  return userDetails;
+};
+
+export const formatChatDetails = (
+  chat: TelegramBot.Chat | number,
+  name?: string | null,
+) => {
+  if (typeof chat === "number" && name != null) {
+    return `${name ?? "<no name>"} (${chat})`;
+  }
+
+  const allChats = chats.getAllChats();
+  const chatDetails = allChats.find(
+    (c) => c.id === (typeof chat === "number" ? chat : chat.id),
+  );
+
+  if (chatDetails) {
+    return `${chatDetails.name} (${chatDetails.id})`;
+  }
+
+  if (typeof chat === "number") {
+    return `<unknown chat> (${chat})`;
+  }
+
+  return `${chat.title || "<no name>"} (${chat.id})`;
+};
+
+export const formatUserMention = (user: TelegramBot.User) =>
+  user.username
+    ? `@${user.username}`
+    : `[${[user.first_name, user.last_name].filter(Boolean).join(" ")}](tg://user?id=${user.id})`;
