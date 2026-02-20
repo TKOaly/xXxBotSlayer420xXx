@@ -337,8 +337,12 @@ bot.on(
       `[❓ challenge] ${user.id} (${new_chat_member.user.username}) - ${challenge.challenge} in ${chat.title || chat.id}`,
     );
 
+    const mention = user.username
+      ? `@${user.username}`
+      : `[${[user.first_name, user.last_name].filter(Boolean).join(" ")}](tg://user?id=${user.id})`;
+
     const messageString = dedent`
-      @${new_chat_member.user.username || user.id}
+      ${mention}
 
       Hei\! Ethän ole botti? Mitä on ${challenge.challenge}? \(${CHALLENGE_TIMEOUT_SECONDS} sekuntia aikaa\)
       Hi\! You're not a bot, right? What is ${challenge.challenge}? \(You have ${CHALLENGE_TIMEOUT_SECONDS} seconds\)
