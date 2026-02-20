@@ -179,18 +179,35 @@ const awaitingResponse: Record<
 const banUserFromAllChats = async (user: TelegramBot.User) => {
   const allChats = chats.getAllChats();
 
-  for (const { id, name } of allChats) {
+  for (const id of adminChats) {
+    const name = allChats.find((c) => c.id === id)?.name || "<no name>";
+
     try {
       await bot.banChatMember(id, user.id, {
         revoke_messages: true,
         until_date: Math.floor(Date.now() / 1000) + 60,
       });
-      console.info(`[🏌️ banned] ${user.username ?? user.id} in ${name || id}`);
-    } catch (e) {
-      console.error(
-        `Failed to ban ${user.id} in chat ${name ?? "<no name>"} (${id}):`,
-        e,
+      console.info(
+        `[🏌️ banned] ${user.username ?? user.id} in ${name} (${id})`,
       );
+    } catch (e) {
+      // Ignore ETELEGRAM: 400 Bad Request: USER_NOT_PARTICIPANT
+      // We can't verify whether the user is part of the chat beforehand.
+      if (e instanceof Error && e.message.includes("USER_NOT_PARTICIPANT")) {
+        continue;
+      }
+
+      // On ETELEGRAM: 400 Bad Request: not enough rights to restrict/unrestrict chat member
+      // we should remove the chat from the database for re-verification.
+      if (e instanceof Error && e.message.includes("not enough rights")) {
+        console.warn(
+          `[😭] Bot is no longer admin in ${name} (${id}), removing from admin list`,
+        );
+        adminChats.delete(id);
+        continue;
+      }
+
+      console.error(`Failed to ban ${user.id} in chat ${name} (${id}):`, e);
     }
   }
 };
@@ -275,10 +292,8 @@ bot.on(
       return;
     }
 
+    // Only trigger for new members, not for leaves or other status changes
     if (new_chat_member.status !== "member") {
-      console.info(
-        `[📭 left or promoted] ${user.username ?? user.id} in ${chat.title || chat.id}`,
-      );
       return;
     }
 
