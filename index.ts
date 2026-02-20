@@ -267,9 +267,17 @@ bot.on(
 
     const user = new_chat_member.user;
 
+    // Check whitelist for user
+    if (whitelist.isWhitelisted(user.id)) {
+      console.info(
+        `[✅ whitelist] ${user.id} (${new_chat_member.user.username}) in ${chat.title || chat.id}`,
+      );
+      return;
+    }
+
     if (new_chat_member.status !== "member") {
       console.info(
-        `[🚫 not member] ${user.username ?? user.id} in ${chat.title || chat.id}`,
+        `[📭 left or promoted] ${user.username ?? user.id} in ${chat.title || chat.id}`,
       );
       return;
     }
@@ -298,14 +306,6 @@ bot.on(
       whitelist.whitelistUser(user.id);
       console.info(
         `[✅ join request] ${user.id} (${new_chat_member.user.username}) in ${chat.title || chat.id}`,
-      );
-      return;
-    }
-
-    // Check whitelist for user
-    if (whitelist.isWhitelisted(user.id)) {
-      console.info(
-        `[✅ whitelist] ${user.id} (${new_chat_member.user.username}) in ${chat.title || chat.id}`,
       );
       return;
     }
