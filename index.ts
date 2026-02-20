@@ -294,14 +294,14 @@ bot.on(
     const fromDetails = formatUserDetails(from);
     const chatDetails = formatChatDetails(chat);
 
-    // Check whitelist for user
-    if (whitelist.isWhitelisted(user.id)) {
-      console.info(`[✅ whitelist] ${userDetails} in ${chatDetails}`);
+    // Only trigger for new members, not for leaves or other status changes
+    if (new_chat_member.status !== "member") {
       return;
     }
 
-    // Only trigger for new members, not for leaves or other status changes
-    if (new_chat_member.status !== "member") {
+    // Check whitelist for user
+    if (whitelist.isWhitelisted(user.id)) {
+      console.info(`[✅ whitelist] ${userDetails} in ${chatDetails}`);
       return;
     }
 
