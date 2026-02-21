@@ -287,7 +287,13 @@ const createChallengeTimeout = (user: TelegramBot.User) => {
 
 bot.on(
   "chat_member",
-  async ({ chat, via_join_request, new_chat_member, from }) => {
+  async ({
+    chat,
+    via_join_request,
+    new_chat_member,
+    old_chat_member,
+    from,
+  }) => {
     chats.addChat(chat);
 
     if (!(await checkAdminStatus(chat))) {
@@ -300,7 +306,10 @@ bot.on(
     const chatDetails = formatChatDetails(chat);
 
     // Only trigger for new members, not for leaves or other status changes
-    if (new_chat_member.status !== "member") {
+    if (
+      new_chat_member.status !== "member" ||
+      old_chat_member.status !== "left"
+    ) {
       return;
     }
 
