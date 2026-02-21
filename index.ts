@@ -337,6 +337,11 @@ bot.on(
         );
         return;
       }
+
+      // If invitor is a non-verified member of the chat that has not joined recently (and thus not challenged), invitor is then either an old bot or a real user. Most bots join with invite links and being kicked from all chats is annoying for real users, so we don't challeng such joins.
+      if (!awaitingResponse[from.id]) {
+        return;
+      }
     }
 
     if (via_join_request) {
