@@ -49,20 +49,13 @@ export const formatUserDetails = (user: TelegramBot.User | undefined) => {
     return `<unknown user>`;
   }
 
-  let userDetails;
-
-  if (user.username) {
-    userDetails = `@${user.username}`;
+  let userDetails = user.first_name;
+  if (user.last_name) {
+    userDetails += " " + user.last_name;
   }
 
-  if (user.first_name || user.last_name) {
-    const namePart = [user.first_name, user.last_name]
-      .filter(Boolean)
-      .join(" ");
-
-    if (user.username) userDetails += " [";
-    if (user.username) userDetails += namePart;
-    if (user.username) userDetails += "]";
+  if (user.username) {
+    userDetails += ` [@${user.username}]`;
   }
 
   userDetails += ` (${user.id})`;
