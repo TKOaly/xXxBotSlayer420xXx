@@ -192,7 +192,7 @@ const banUserFromAllChats = async (user: TelegramBot.User) => {
     try {
       await bot.banChatMember(id, user.id, {
         revoke_messages: true,
-        until_date: Math.floor(Date.now() / 1000) + 60,
+        until_date: Math.floor(Date.now() / 1000) + 60 * 10,
       });
       console.info(`[🏌️ banned] ${userDetails} in ${chatDetails}`);
     } catch (e) {
