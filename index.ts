@@ -308,10 +308,15 @@ bot.on(
     // Only trigger for new members, not for leaves or other status changes
     if (
       new_chat_member.status !== "member" ||
-      old_chat_member.status !== "left"
+      (old_chat_member.status !== "left" && old_chat_member.status !== "kicked")
     ) {
       return;
     }
+    if (
+      old_chat_member.status === "kicked" &&
+      new_chat_member.status == "member"
+    )
+      console.log("old status kicked, new status member"); // debug to be deleted later, attempt to test how tg api works
 
     // Check whitelist for user
     if (whitelist.isWhitelisted(user.id)) {
