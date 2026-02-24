@@ -87,7 +87,13 @@ export const formatChatDetails = (
   return `${chat.title || "<no name>"} (${chat.id})`;
 };
 
+const sanitizeMarkdownString = (s: string) =>
+  s.replaceAll(/[\\\ \_\*\[\]\(\)\~\`\>\#\+\-\=\|\{\}\.\!]/g, (s) => `\\${s}`);
+
 export const formatUserMention = (user: TelegramBot.User) =>
   user.username
-    ? `@${user.username}`
-    : `[${[user.first_name, user.last_name].filter(Boolean).join(" ")}](tg://user?id=${user.id})`;
+    ? `@${sanitizeMarkdownString(user.username)}`
+    : `[${[user.first_name, user.last_name]
+        .filter(Boolean)
+        .map((s) => sanitizeMarkdownString(s ?? ""))
+        .join(" ")}](tg://user?id=${user.id})`;
