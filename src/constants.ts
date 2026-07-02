@@ -5,6 +5,7 @@ export const TOKEN = Bun.env.TELEGRAM_BOT_TOKEN;
 export const CHALLENGE_TIMEOUT_SECONDS = 60;
 export const CHALLENGE_DELETE_SECONDS = 1;
 export const ADMIN_STATUS_CHECK_COOLDOWN = 60 * 1000;
+export const CHAT_STATUS_CACHE_TTL = 5 * 60 * 1000;
 
 export const WANTED_RIGHTS: TelegramBot.ChatAdministratorRights = {
   can_restrict_members: true,

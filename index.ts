@@ -11,6 +11,7 @@ import {
 } from "./src/utils";
 import {
   ADMIN_STATUS_CHECK_COOLDOWN,
+  CHAT_STATUS_CACHE_TTL,
   CHALLENGE_TIMEOUT_SECONDS,
   CHALLENGE_DELETE_SECONDS,
   TOKEN,
@@ -174,19 +175,28 @@ const checkAdminStatus = async (chat: TelegramBot.Chat) => {
   return false;
 };
 
-const readOnlyChats = new Set<number>();
+const chatReadOnlyStatusCache: Record<
+  number,
+  { isReadOnly: boolean; expiresAt: number }
+> = {};
 
 // Check if the chat is read-only (archived)
 const checkReadOnlyStatus = async (chat: TelegramBot.Chat) => {
-  if (readOnlyChats.has(chat.id)) return true;
+  const cachedStatus = chatReadOnlyStatusCache[chat.id];
 
-  const fullChat = await bot.getChat(chat.id);
-  if (fullChat.permissions?.can_send_messages === false) {
-    readOnlyChats.add(chat.id);
-    return true;
+  if (cachedStatus && cachedStatus.expiresAt > Date.now()) {
+    return cachedStatus.isReadOnly;
   }
 
-  return false;
+  const fullChat = await bot.getChat(chat.id);
+  const isReadOnly = fullChat.permissions?.can_send_messages === false;
+
+  chatReadOnlyStatusCache[chat.id] = {
+    isReadOnly,
+    expiresAt: Date.now() + CHAT_STATUS_CACHE_TTL,
+  };
+
+  return isReadOnly;
 };
 
 const awaitingResponse: Record<
