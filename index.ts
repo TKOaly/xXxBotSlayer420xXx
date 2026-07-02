@@ -174,6 +174,21 @@ const checkAdminStatus = async (chat: TelegramBot.Chat) => {
   return false;
 };
 
+const readOnlyChats = new Set<number>();
+
+// Check if the chat is read-only (archived)
+const checkReadOnlyStatus = async (chat: TelegramBot.Chat) => {
+  if (readOnlyChats.has(chat.id)) return true;
+
+  const fullChat = await bot.getChat(chat.id);
+  if (fullChat.permissions?.can_send_messages === false) {
+    readOnlyChats.add(chat.id);
+    return true;
+  }
+
+  return false;
+};
+
 const awaitingResponse: Record<
   number,
   {
@@ -357,6 +372,11 @@ bot.on(
 
     if (awaitingResponse[user.id]) {
       console.info(`[🔕 awaiting] ${userDetails} in ${chatDetails}`);
+      return;
+    }
+
+    if (await checkReadOnlyStatus(chat)) {
+      console.info(`[🔒 read-only] ${userDetails} in ${chatDetails}`);
       return;
     }
 
