@@ -2,6 +2,7 @@ import type TelegramBot from "node-telegram-bot-api";
 
 export const TOKEN = Bun.env.TELEGRAM_BOT_TOKEN;
 
+export const CHALLENGE_RESPONSE_LENGTH_CAP = 40;
 export const CHALLENGE_TIMEOUT_SECONDS = 60;
 export const CHALLENGE_DELETE_SECONDS = 1;
 export const ADMIN_STATUS_CHECK_COOLDOWN = 60 * 1000;
