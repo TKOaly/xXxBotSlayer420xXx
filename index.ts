@@ -477,7 +477,7 @@ bot.on("message", async (message) => {
     if (message.chat.type === "private") {
       await bot.sendMessage(
           message.chat.id,
-          "Pong\! 🏓",
+          "Pong 🏓",
           { parse_mode: "MarkdownV2" },
         );
     }
