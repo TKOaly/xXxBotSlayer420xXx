@@ -153,7 +153,7 @@ for (const { id, name } of allChats) {
         
         if (!newId) {
           console.warn(`[⏫⚠️] Chat ${chatDetails} upgraded to supergroup, but no new id found`);
-          console.error(util.inspect(e, { depth: 4 });
+          console.error(util.inspect(e, { depth: 4 }));
 
           continue;
         }
