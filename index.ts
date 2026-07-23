@@ -441,7 +441,7 @@ bot.on("message", async (message) => {
   const chatDetails = formatChatDetails(message.chat);
 
   const messageText = message.text;
-  const messageLength = response?.length;
+  const messageLength = messageText?.length;
 
   // Ping handler
   if (messageText === "/ping") {
