@@ -14,6 +14,7 @@ import {
   CHAT_STATUS_CACHE_TTL,
   CHALLENGE_TIMEOUT_SECONDS,
   CHALLENGE_DELETE_SECONDS,
+  CHALLENGE_RESPONSE_LENGTH_CAP,
   TOKEN,
 } from "./src/constants";
 
@@ -439,12 +440,30 @@ bot.on("message", async (message) => {
   const userDetails = formatUserDetails(message.from);
   const chatDetails = formatChatDetails(message.chat);
 
-  if (message.text === "/ping") {
+  const messageText = message.text;
+  const messageLength = response?.length;
+
+  // Ping handler
+  if (messageText === "/ping") {
     console.info(`[🏓 ping] ${userDetails} in ${chatDetails}`);
+
+    if (message.chat.type === "private") {
+      await bot.sendMessage(
+          message.chat.id,
+          dedent`Pong!
+          
+          🦆💛🖤`,
+          { parse_mode: "MarkdownV2" },
+        );
+    }
+
+    return;
   }
 
+  // DM commands
   if (message.chat.type === "private") {
-    if (message.text?.includes("/vahvista")) {
+    // Manual verification
+    if (messageText?.includes("/vahvista")) {
       console.info(`[✅ whitelist via DM] ${userDetails} whitelisted via DM`);
       whitelist.whitelistUser(message.from!.id);
       try {
@@ -467,7 +486,8 @@ bot.on("message", async (message) => {
       return;
     }
 
-    if (message.text?.includes("/unohda")) {
+    // Manual forgetting
+    if (messageText?.includes("/unohda")) {
       whitelist.forgetUser(message.from!.id);
       try {
         await bot.sendMessage(
@@ -490,26 +510,50 @@ bot.on("message", async (message) => {
     }
   }
 
+  // Only handle from groups and supergroups if not DM
   if (message.chat.type !== "group" && message.chat.type !== "supergroup") {
     return;
   }
 
+  // Register chat in db (idempotent)
   chats.addChat(message.chat);
 
   const user = message.from;
   const chat = message.chat;
 
+  // Are we waiting for a response from user?
   if (!user || !awaitingResponse[user.id]) {
     return;
   }
 
+  // Are we admins in the current chat?
   if (!(await checkAdminStatus(chat))) {
     return;
   }
 
   const { challengeAnswer, challengeTimeout } = awaitingResponse[user.id];
-  if (message.text?.includes(challengeAnswer)) {
-    console.info(`[✅ passed] ${userDetails} in ${chatDetails}`);
+
+  if (messageText?.includes(challengeAnswer)) {
+    // Verbose response (exceeds res length cap)
+    if (messageLength >= CHALLENGE_RESPONSE_LENGTH_CAP) {
+      console.info(`[🗣️ verbose] ${userDetails} in ${chatDetails} tried to verify with ${messageLength}-char response: ${messageText}`);
+
+      await bot.setMessageReaction(chat.id, message.message_id, {
+        reaction: [
+          {
+            type: "emoji",
+            emoji: "👎",
+          },
+        ],
+      });
+
+      markMessageForCleanup(user.id, chat.id, message.message_id);
+
+      return;
+    }
+
+    // Correct challenge response
+    console.info(`[✅ passed] ${userDetails} in ${chatDetails} with message "${messageText}"`);
     whitelist.whitelistUser(user.id);
 
     clearTimeout(challengeTimeout);
@@ -537,7 +581,9 @@ bot.on("message", async (message) => {
   // If the message content is just numbers or similar,
   // it's likely an attempt to answer the challenge,
   // so we can react with thumbs down to indicate failure.
-  if (message.text && /^\s*[\d\W_]+\s*$/.test(message.text)) {
+  if (messageText && /^\s*[\d\W_]+\s*$/.test(messageText)) {
+    console.log(`[👎 failed] ${userDetails} in ${chatDetails} with message "${messageText}"`)
+
     await bot.setMessageReaction(chat.id, message.message_id, {
       reaction: [
         {
