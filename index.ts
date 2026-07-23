@@ -144,14 +144,24 @@ for (const { id, name } of allChats) {
       if (e.message.includes("chat not found")) {
         console.info(`[👻] Chat ${chatDetails} not found`);
         chats.deleteChat(id);
+        
         continue;
       }
 
       if (e.message.includes("chat was upgraded to a supergroup")) {
         const newId = e.response?.body?.parameters?.migrate_to_chat_id;
+        
+        if (!newId) {
+          console.warn(`[⏫⚠️] Chat ${chatDetails} upgraded to supergroup, but no new id found`);
+          console.error(util.inspect(e, { depth: 4 });
+
+          continue;
+        }
+        
         console.info(`[⏫] Chat ${chatDetails} upgraded to supergroup, new id ${newId}. Admin status will be checked when needed`);
         chats.deleteChat(id);
         chats.addChat(newId);
+        
         continue;
       }
     }
