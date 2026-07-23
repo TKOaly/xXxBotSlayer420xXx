@@ -1,5 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import dedent from "dedent";
+import util from "node:util";
 
 import { whitelist, chats } from "./src/db";
 import {
@@ -139,6 +140,21 @@ for (const { id, name } of allChats) {
       adminChats.add(id);
     }
   } catch (e) {
+    if (e instanceof Error) {
+      if (e.message.includes("chat not found")) {
+        console.info(`[👻] Chat ${chatDetails} not found. Removed.`);
+        chats.deleteChat(id);
+        continue;
+      }
+
+      if (e.message.includes("chat was upgraded to a supergroup")) {
+        console.info(`[⏫] Chat ${chatDetails} upgraded to supergroup`);
+        console.info(util.inspect(e, { depth: 4 }));
+        console.info(`[⏫] No action taken yet!`);
+        continue;
+      }
+    }
+    
     console.error(
       `Failed to check admin status of ${chatDetails} on startup:`,
       e,
