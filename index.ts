@@ -338,7 +338,7 @@ const createChallengeTimeout = (user: TelegramBot.User) => {
   }, CHALLENGE_TIMEOUT_SECONDS * 1000);
 };
 
-const allowlistChats = ['-3896941141'];
+const allowlistChats = ['-3896941141', '-1003896941141'];
 
 bot.on(
   "chat_member",
