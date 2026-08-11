@@ -338,6 +338,8 @@ const createChallengeTimeout = (user: TelegramBot.User) => {
   }, CHALLENGE_TIMEOUT_SECONDS * 1000);
 };
 
+const allowlistChats = ['-3896941141'];
+
 bot.on(
   "chat_member",
   async ({
@@ -349,14 +351,30 @@ bot.on(
   }) => {
     chats.addChat(chat);
 
-    if (!(await checkAdminStatus(chat))) {
-      return;
-    }
-
     const user = new_chat_member.user;
     const userDetails = formatUserDetails(user);
     const fromDetails = formatUserDetails(from);
     const chatDetails = formatChatDetails(chat);
+
+    if (allowlistChats.includes(chat.id)) {
+      // Fresher channel allowlist bypass: add to authenticated and don't challenge
+      whitelist.whitelistUser(user.id);
+      console.info(`[🐣 allowlist] ${userDetails} whitelisted by joining allowlist chat ${chatDetails}`);
+
+      // If they joined multiple in rapid succession, cancel others
+      // TODO: Move to function `cancelChallengeForUser`
+      if (awaitingResponse[user.id]) {
+        console.info(`[🟢] Canceled ${userDetails} outstanding challenge`);
+        delete awaitingResponse[user.id];
+        cleanUpMessages(user, false);
+      }
+
+      return;
+    }
+
+    if (!(await checkAdminStatus(chat))) {
+      return;
+    }
 
     // Only trigger for new members, not for leaves or other status changes
     if (
