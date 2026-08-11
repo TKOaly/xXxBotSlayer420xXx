@@ -338,7 +338,9 @@ const createChallengeTimeout = (user: TelegramBot.User) => {
   }, CHALLENGE_TIMEOUT_SECONDS * 1000);
 };
 
-const allowlistChats = ['-3896941141', '-1003896941141'];
+// FIXME: check type whether string or number definitely should not be
+// coding this on vscode.dev at midnight
+const allowlistChats = ['-3896941141', '-1003896941141', -1003896941141];
 
 bot.on(
   "chat_member",
