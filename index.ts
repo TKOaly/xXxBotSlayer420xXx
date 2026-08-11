@@ -356,22 +356,6 @@ bot.on(
     const fromDetails = formatUserDetails(from);
     const chatDetails = formatChatDetails(chat);
 
-    if (allowlistChats.includes(chat.id)) {
-      // Fresher channel allowlist bypass: add to authenticated and don't challenge
-      whitelist.whitelistUser(user.id);
-      console.info(`[🐣 allowlist] ${userDetails} whitelisted by joining allowlist chat ${chatDetails}`);
-
-      // If they joined multiple in rapid succession, cancel others
-      // TODO: Move to function `cancelChallengeForUser`
-      if (awaitingResponse[user.id]) {
-        console.info(`[🟢] Canceled ${userDetails} outstanding challenge`);
-        delete awaitingResponse[user.id];
-        cleanUpMessages(user, false);
-      }
-
-      return;
-    }
-
     if (!(await checkAdminStatus(chat))) {
       return;
     }
@@ -392,6 +376,22 @@ bot.on(
     // Check whitelist for user
     if (whitelist.isWhitelisted(user.id)) {
       console.info(`[✅ whitelist] ${userDetails} in ${chatDetails}`);
+      return;
+    }
+
+    if (allowlistChats.includes(chat.id)) {
+      // Fresher channel allowlist bypass: add to authenticated and don't challenge
+      whitelist.whitelistUser(user.id);
+      console.info(`[🐣 allowlist] ${userDetails} whitelisted by joining allowlist chat ${chatDetails}`);
+
+      // If they joined multiple in rapid succession, cancel others
+      // TODO: Move to function `cancelChallengeForUser`
+      if (awaitingResponse[user.id]) {
+        console.info(`[🟢] Canceled ${userDetails} outstanding challenge`);
+        delete awaitingResponse[user.id];
+        cleanUpMessages(user, false);
+      }
+
       return;
     }
 
